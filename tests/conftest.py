@@ -23,10 +23,17 @@ CLEAN_TABLES = [
 ]
 
 
+# @pytest.fixture(scope="session")
+# def event_loop():
+#     loop = asyncio.new_event_loop()
+#     asyncio.set_event_loop(loop)
+#     yield loop
+#     loop.close()
+
+
 @pytest.fixture(scope="session")
 def event_loop():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
 
@@ -56,6 +63,15 @@ async def clean_tables(async_session_test):
 
 async def _get_test_db():
     try:
+        # create async engine for interaction with database
+        test_engine = create_async_engine(
+            settings.TEST_DATABASE_URL, future=True, echo=True
+        )
+
+        # create session for the interaction with database
+        test_async_session = sessionmaker(
+            test_engine, expire_on_commit=False, class_=AsyncSession
+        )
         yield test_async_session()
     finally:
         pass
@@ -87,3 +103,17 @@ async def get_user_from_database(asyncpg_pool):
             return await connection.fetch("""SELECT * FROM users WHERE user_id = $1;""", user_id)
 
     return get_user_from_database_by_uuid
+
+
+@pytest.fixture
+async def create_user_in_database(asyncpg_pool):
+
+    async def create_user_in_database(
+        user_id: str, name: str, surname: str, email: str, is_active: bool
+    ):
+        async with asyncpg_pool.acquire() as connection:
+            return await connection.execute(
+                """INSERT INTO users VALUES ($1, $2, $3, $4, $5)""", 
+                user_id, name, surname, email, is_active
+            )
+    return create_user_in_database
