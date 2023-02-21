@@ -19,7 +19,7 @@ async def test_update_user(client, create_user_in_database, get_user_from_databa
 	await create_user_in_database(**user_data)
 	resp = client.patch(
 		f"/user/?user_id={user_data['user_id']}", 
-		data=json.dumps(user_data_updated)
+		content=json.dumps(user_data_updated)
 	)
 	assert resp.status_code == 200
 	resp_data = resp.json()

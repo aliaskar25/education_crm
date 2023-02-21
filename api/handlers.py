@@ -1,9 +1,12 @@
+from logging import getLogger
+
 from typing import Union
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi import HTTPException
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.models import (
@@ -13,6 +16,8 @@ from api.models import (
 from db.dals import UserDAL
 from db.session import get_db
 
+
+logger = getLogger(__name__)
 
 user_router = APIRouter()
 
@@ -72,7 +77,11 @@ async def _delete_user(user_id, db) -> Union[UUID, None]:
 
 @user_router.post('/', response_model=UserShow)
 async def create_user(body: UserCreate, db: AsyncSession = Depends(get_db)) -> UserShow:
-    return await _create_new_user(body, db)
+    try:
+        return await _create_new_user(body, db)
+    except IntegrityError as err:
+        logger.error(err)
+        raise HTTPException(status_code=400, detail="User with this email already exists.")
 
 
 @user_router.delete('/', response_model=DeleteUserResponse)
@@ -81,7 +90,7 @@ async def delete_user(user_id: UUID, db: AsyncSession = Depends(get_db)) -> Dele
     if deleted_user_id is None:
         raise HTTPException(status_code=404, detail="User with given credentials was not found.")
     return DeleteUserResponse(deleted_user_id=deleted_user_id)
-    
+
 
 @user_router.get('/', response_model=UserShow)
 async def get_user_by_id(user_id: UUID, db: AsyncSession = Depends(get_db)) -> UserShow:
@@ -102,5 +111,9 @@ async def update_user_by_id(
     user = await _get_user_by_id(user_id, db)
     if user is None:
         raise HTTPException(status_code=404, detail="User with given credentials was not found.")
-    updated_user_id = await _update_user(body, user_id, db)
-    return UpdatedUserResponse(updated_user_id=updated_user_id)
+    try:
+        updated_user_id = await _update_user(body, user_id, db)
+        return UpdatedUserResponse(updated_user_id=updated_user_id)
+    except IntegrityError as err:
+        logger.error(err)
+        raise HTTPException(status_code=400, detail="User with this email already exists.")
