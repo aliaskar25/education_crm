@@ -7,7 +7,8 @@ async def test_create_user(client, get_user_from_database):
     user_data = {
     	"name": "Aliaskar",
     	"surname": "Isakov",
-    	"email": "aliaskar.isakov@gmail.com"
+    	"email": "aliaskar.isakov@gmail.com",
+        "password": "somepassword", 
     }
     resp = client.post("/user/", content=json.dumps(user_data))
     data_from_resp = resp.json()
@@ -32,12 +33,14 @@ async def test_create_user_duplicate_email_error(
     user_data = {
         "name": "Aliaskar",
     	"surname": "Isakov",
-    	"email": "aliaskar.isakov@gmail.com"
+    	"email": "aliaskar.isakov@gmail.com",
+        "password": "somepassword"
     }
     user_data_same_email = {
         "name": "Ali",
         "surname": "Isakov",
-        "email": "aliaskar.isakov@gmail.com"
+        "email": "aliaskar.isakov@gmail.com",
+        "password": "somepassword"
     }
     resp = client.post("/user/", content=json.dumps(user_data))
     data_from_resp = resp.json()
@@ -57,4 +60,3 @@ async def test_create_user_duplicate_email_error(
     resp = client.post("/user/", content=json.dumps(user_data_same_email))
     assert resp.status_code == 400
     assert "User with this email already exists." in resp.json()["detail"]
-    

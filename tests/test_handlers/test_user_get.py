@@ -9,7 +9,8 @@ async def test_get_user(client, create_user_in_database, get_user_from_database)
 		"name": "Mikasa",
 		"surname": "Ackerman",
 		"email": "mikasa@gmail.com",
-		"is_active": True
+		"is_active": True,
+		"hashed_password": "somepassword"
 	}
 	await create_user_in_database(**user_data)
 	resp = client.get(f"/user/?user_id={user_data['user_id']}")

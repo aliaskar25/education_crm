@@ -9,7 +9,8 @@ async def test_delete_user(client, create_user_in_database, get_user_from_databa
     	"name": "Eren",
     	"surname": "Yeager",
     	"email": "eren@gmail.com",
-    	"is_active": True
+    	"is_active": True,
+		"hashed_password": "somepassword"
     }
 	await create_user_in_database(**user_data)
 	resp = client.delete(f"/user/?user_id={str(user_data['user_id'])}")
@@ -22,3 +23,16 @@ async def test_delete_user(client, create_user_in_database, get_user_from_databa
 	assert user_from_db["surname"] == user_data["surname"]
 	assert user_from_db["email"] == user_data["email"]
 	assert user_from_db["is_active"] is False
+
+
+async def test_delete_user_not_found(client):
+	user_id = uuid4()
+	resp = client.delete(f"/user/?user_id={user_id}")
+	assert resp.status_code == 404
+	assert resp.json() == {"detail": "User with given credentials was not found."}
+
+
+async def test_delete_user_user_id_validation_error(client):
+	resp = client.delete("/user/?user_id=12345")
+	assert resp.status_code == 422
+	assert resp.json() == {"detail": [{"loc": ["query", "user_id"], "msg": "value is not a valid uuid", "type": "type_error.uuid"}]}

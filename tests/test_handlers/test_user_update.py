@@ -9,12 +9,14 @@ async def test_update_user(client, create_user_in_database, get_user_from_databa
 		"name": "Armin",
 		"surname": "Arlert",
 		"email": "armin@gmail.com",
-		"is_active": True
+		"is_active": True,
+		"hashed_password": "somepassword"
 	}
 	user_data_updated = {
 		"name": "Armin-Collosal",
 		"surname": "Arlerd",
-		"email": "collos@gmail.com"
+		"email": "collos@gmail.com",
+		"hashed_password": "somepassword"
 	}
 	await create_user_in_database(**user_data)
 	resp = client.patch(

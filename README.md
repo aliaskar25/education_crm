@@ -11,3 +11,8 @@ Non-commercial education crm-system with FastAPI
 2. Run migrations:
     alembic revision --autogenerate -m "some comment for migration"
     alembic upgrade head
+    --------------------
+    alembic stamp head
+    alembic revision --autogenerate -m "New revision"
+    alembic upgrade head
+    alembic stamp head

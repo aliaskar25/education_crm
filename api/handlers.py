@@ -1,4 +1,5 @@
 from logging import getLogger
+from hashing import Hasher
 
 from typing import Union
 from uuid import UUID
@@ -30,6 +31,7 @@ async def _create_new_user(body: UserCreate, db) -> UserShow:
                 name=body.name,
                 surname=body.surname,
                 email=body.email,
+                hashed_password=Hasher.get_password_hash(body.password)
             )
             return UserShow(
                 user_id=user.user_id,
